@@ -15,7 +15,7 @@ from contextlib import closing
 
 DATABASE = 'bookcatalogue.db'
 DEBUG = True
-SECRET_KEY = 'generate it using os.urandom(24)'
+SECRET_KEY = 'use os.urandom(24) to generate'
 USERNAME = 'admin'
 PASSWORD = 'password'
 
@@ -101,16 +101,21 @@ def delete():
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME']:
-            error = "Invalid Username"
-            flash("Invalid Username")
-        elif request.form['password'] != app.config['PASSWORD']:
-            error = "Invalid Password"
-            flash("Invalid Password")
-        else:
-            session['logged_in'] = True
-            flash("You were logged in. Your current library is displayed below.")
+        if 
+		session['logged_in'] = True
+            flash("Welcome!! Your current library is displayed below.")
             return redirect(url_for('homepage'))
+		
+		
+		elif request.form['username'] != app.config['USERNAME']:
+            error = "Invalid Username"
+            flash("Username not found")
+			
+         else request.form['password'] != app.config['PASSWORD']:
+            error = "Invalid Password"
+            flash("Sorry.wrong password")
+        
+            
     return render_template('login.html', error=error)
 
 
@@ -128,7 +133,7 @@ def homepage():
     bookcatalogue = [dict(id=row[0], isbn=row[1], title=row[2], authors=row[3],
                   pagecount=row[4], averagerating=row[5],
                   thumbnail=row[6]) for row in cur.fetchall()]
-    return render_template('index.html', bookcatalogue=bookcatalogue)
+    return render_template('login.html', bookcatalogue=bookcatalogue)
 
 
 if __name__ == "__main__":
