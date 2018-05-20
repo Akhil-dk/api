@@ -19,28 +19,28 @@ SECRET_KEY = 'use os.urandom(24) to generate'
 USERNAME = 'admin'
 PASSWORD = 'password'
 
-app = Flask(__name__)
-app.config.from_object(__name__)
+web_app = Flask(__name__)
+web_app.config.from_object(__name__)
 
 API_URL = "https://www.googleapis.com/books/v1/volumes?q=isbn:"
 
 def connect_db():
-    return sqlite3.connect(app.config['DATABASE'])
+    return sqlite3.connect(web_app.config['DATABASE'])
 
 
-@app.before_request
+@web_app.before_request
 def before_request():
     g.db = connect_db()
 
 
-@app.teardown_request
+@web_app.teardown_request
 def teardown_request(exception):
     db = getattr(g, 'db', None)
     if db is not None:
         db.close()
 
 
-@app.route('/google_api', methods=['POST', 'GET'])
+@web_app.route('/google_api', methods=['POST', 'GET'])
 def google_api():
     if request.method == 'POST':
         isbn = request.form['ISBN']
@@ -70,7 +70,7 @@ def google_api():
         return render_template('google_api.html')
 
 
-@app.route('/add', methods=['POST'])
+@web_app.route('/add', methods=['POST'])
 def add():
     if not session.get('logged_in'):
         abort(401)
@@ -81,14 +81,14 @@ def add():
                       request.form['authors'], request.form['pagecount'],
                       request.form['averagerating'], request.form['thumbnail']))
         g.db.commit()
-        flash("Book added to library")
+        flash("Book added to your list")
         return redirect(url_for('homepage'))
     except():
-        flash("Error adding to library")
+        flash("unable to add,please try again")
         return redirect(url_for('homepage'))
 
 
-@app.route('/delete', methods=['GET'])
+@web_app.route('/delete', methods=['GET'])
 def delete():
     book_id = request.args.get('id')
     g.db.execute('DELETE FROM bookcatalogue WHERE ID = ?', book_id)
@@ -97,7 +97,7 @@ def delete():
     return redirect(url_for('homepage'))
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@web_app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
@@ -107,11 +107,11 @@ def login():
             return redirect(url_for('homepage'))
 		
 		
-		elif request.form['username'] != app.config['USERNAME']:
+		elif request.form['username'] != web_app.config['USERNAME']:
             error = "Invalid Username"
             flash("Username not found")
 			
-         else request.form['password'] != app.config['PASSWORD']:
+         else request.form['password'] != web_app.config['PASSWORD']:
             error = "Invalid Password"
             flash("Sorry.wrong password")
         
@@ -119,14 +119,14 @@ def login():
     return render_template('login.html', error=error)
 
 
-@app.route('/logout')
+@web_app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     flash("You were logged out")
     return redirect(url_for('homepage'))
 
 
-@app.route('/')
+@web_app.route('/')
 def homepage():
     cur = g.db.execute('SELECT ID, ISBN, TITLE, AUTHORS, PAGECOUNT, '
                        'AVERAGERATING, THUMBNAIL FROM bookcatalogue')
@@ -137,4 +137,4 @@ def homepage():
 
 
 if __name__ == "__main__":
-    app.run()
+    web_app.run()
